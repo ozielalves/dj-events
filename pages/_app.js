@@ -1,7 +1,13 @@
-import '../styles/globals.css'
+import { ToasterProvider } from "context/ToasterContext";
+
+import "../styles/globals.css";
 
 function MyApp({ Component, pageProps }) {
-  return <Component {...pageProps} />
+  return (
+    <ToasterProvider>
+      <Component {...pageProps} />
+    </ToasterProvider>
+  );
 }
 
-export default MyApp
+export default MyApp;
