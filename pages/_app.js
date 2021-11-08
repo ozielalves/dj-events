@@ -1,11 +1,14 @@
 import { ToasterProvider } from "context/ToasterContext";
+import { AuthProvider } from "context/AuthContext";
 
 import "../styles/globals.css";
 
 function MyApp({ Component, pageProps }) {
   return (
     <ToasterProvider>
-      <Component {...pageProps} />
+      <AuthProvider>
+        <Component {...pageProps} />
+      </AuthProvider>
     </ToasterProvider>
   );
 }

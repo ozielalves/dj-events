@@ -10,20 +10,24 @@ import { useToaster } from "@/hooks/useToaster";
 import Layout from "@/components/Layout";
 import Modal from "@/components/Modal";
 import ImageUpload from "@/components/ImageUpload";
+import { parseCookies } from "@/helpers/index";
 import styles from "./styles.module.css";
 
-export async function getServerSideProps({ params: { id } }) {
+export async function getServerSideProps({ params: { id }, req }) {
+  const { token } = parseCookies(req);
+
   const res = await fetch(`${API_URL}events/${id}`);
   const event = await res.json(); // get event from api
 
   return {
     props: {
       event,
+      token,
     },
   };
 }
 
-export default function EditEventPage({ event }) {
+export default function EditEventPage({ event, token }) {
   const [values, setValues] = useState(event);
   const [imagePreview, setImagePreview] = useState(
     event.image ? event.image.formats.thumbnail.url : null
@@ -46,11 +50,18 @@ export default function EditEventPage({ event }) {
 
     const res = await fetch(`${API_URL}events/${event.id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify(values),
     });
 
     if (!res.ok) {
+      if (res.status === 401 || res.status === 403) {
+        toast.error("You are not authorized to perform this action");
+        return;
+      }
       toast.error("Something went wrong while editing the new event. :(");
       return;
     }
@@ -77,7 +88,7 @@ export default function EditEventPage({ event }) {
   };
 
   return (
-    <Layout title="Add New Event">
+    <Layout title="Edit Event">
       <Link href="/events">
         <a>{"<"} Go back</a>
       </Link>
@@ -162,7 +173,7 @@ export default function EditEventPage({ event }) {
       </form>
       <h2>Event Image</h2>
       {imagePreview ? (
-        <Image src={imagePreview} height={100} width={170} />
+        <Image src={imagePreview} height={100} width={170} alt={event.name} />
       ) : (
         <div>
           <p>No image uploaded</p>
@@ -176,7 +187,11 @@ export default function EditEventPage({ event }) {
       </div>
 
       <Modal show={showModal} onClose={() => setShowModal(false)}>
-        <ImageUpload eventId={event.id} onImageUpload={handleImageUpload} />
+        <ImageUpload
+          eventId={event.id}
+          onImageUpload={handleImageUpload}
+          token={token}
+        />
       </Modal>
     </Layout>
   );

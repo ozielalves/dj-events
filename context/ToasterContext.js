@@ -8,7 +8,7 @@ export const ToasterProvider = ({ children }) => {
   return (
     <ToasterContext.Provider value={toast}>
       {children}
-      <ToastContainer position="bottom-right" pauseOnHover />
+      <ToastContainer position="bottom-right" theme="colored" pauseOnHover />
     </ToasterContext.Provider>
   );
 };

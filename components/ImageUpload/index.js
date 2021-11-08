@@ -3,11 +3,12 @@ import { API_URL } from "@/config/index";
 
 import styles from "./styles.module.css";
 
-export default function ImageUpload({ eventId, onImageUpload }) {
+export default function ImageUpload({ eventId, onImageUpload, token }) {
   const [image, setImage] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     const formData = new FormData();
     formData.append("files", image);
     formData.append("ref", "events");
@@ -16,6 +17,9 @@ export default function ImageUpload({ eventId, onImageUpload }) {
 
     const res = await fetch(`${API_URL}upload`, {
       method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
       body: formData,
     });
 

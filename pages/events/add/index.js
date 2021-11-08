@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import Link from "next/link";
 
+import { useToaster } from "@/hooks/useToaster";
 import { API_URL } from "@/config/index";
 import Layout from "@/components/Layout";
+import { parseCookies } from "@/helpers/index";
 import styles from "./styles.module.css";
 
 const defaultValues = {
@@ -18,10 +18,21 @@ const defaultValues = {
   description: "",
 };
 
-export default function AddEventPage() {
+export async function getServerSideProps({ req }) {
+  const { token } = parseCookies(req);
+
+  return {
+    props: {
+      token,
+    },
+  };
+}
+
+export default function AddEventPage({ token }) {
   const [values, setValues] = useState(defaultValues);
 
   const router = useRouter();
+  const toast = useToaster();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -35,11 +46,18 @@ export default function AddEventPage() {
 
     const res = await fetch(`${API_URL}events`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify(values),
     });
 
     if (!res.ok) {
+      if (res.status === 401 || res.status === 403) {
+        toast.error("You are not authorized to perform this action");
+        return;
+      }
       toast.error("Something went wrong while adding the new event. :(");
       return;
     }
@@ -141,7 +159,6 @@ export default function AddEventPage() {
 
         <input type="submit" value="Add Event" className="btn" />
       </form>
-      <ToastContainer position="bottom-right" pauseOnHover />
     </Layout>
   );
 }
